@@ -1,11 +1,14 @@
-import face_recognition
 import argparse
-import pickle
-import cv2
-import os
 import glob
+import os
+import pickle
+
+import cv2
+import face_recognition
 import torch
+
 from models.predict_arcface import encode_sample
+
 
 def get_args():
     arg_parser = argparse.ArgumentParser()

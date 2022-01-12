@@ -8,7 +8,7 @@ import numpy as np
 from detection import get_locations, get_boundaries
 
 
-def get_eyes_positions(gray_face, tries=10, initial_coef=38):
+def get_eyes_positions(gray_face, tries=30, initial_coef=10):
     """
     This method find eyes positions on this photo and returns their position.
     We expect two eyes thus we will adapt sensitivity to find two eyes, if not we'll return None
@@ -19,6 +19,8 @@ def get_eyes_positions(gray_face, tries=10, initial_coef=38):
     initial_eyes_index = initial_coef
     for counter in range(tries):
         eyes = eye_cascade.detectMultiScale(gray_face, 1.1, initial_eyes_index)
+        print(eyes)
+        print(initial_eyes_index)
         if len(eyes) != 2:
             if len(eyes) < 2:
                 initial_eyes_index -= 2
@@ -100,11 +102,4 @@ def process_face(image_path):
         return result
 
 
-if __name__ == '__main__':
-    pass
-    # im = cv2.imread("/Users/martingano/repos/pova_projekt/full_pipeline/jarka.jpg")
-    # face_locations, image, gray = get_locations(im)
-    # ll, rr, dd, uu = get_boundaries(face_locations[0])
-    # gray_face = gray[max(0, dd):uu, max(0, ll):rr]
-    # show_eyes_position(gray_face, get_eyes_positions(gray_face))
-    # show_detected_face(cv2.imread("/Users/martingano/repos/pova_projekt/full_pipeline/jarka.jpg"))
+

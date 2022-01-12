@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-__all__ = ['iresnet50']
+__all__ = ['iresnet18', 'iresnet34', 'iresnet50', 'iresnet100', 'iresnet200']
 
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
@@ -27,7 +27,6 @@ def conv1x1(in_planes, out_planes, stride=1):
 
 class IBasicBlock(nn.Module):
     expansion = 1
-
     def __init__(self, inplanes, planes, stride=1, downsample=None,
                  groups=1, base_width=64, dilation=1):
         super(IBasicBlock, self).__init__()
@@ -35,12 +34,12 @@ class IBasicBlock(nn.Module):
             raise ValueError('BasicBlock only supports groups=1 and base_width=64')
         if dilation > 1:
             raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
-        self.bn1 = nn.BatchNorm2d(inplanes, eps=1e-05, )
+        self.bn1 = nn.BatchNorm2d(inplanes, eps=1e-05,)
         self.conv1 = conv3x3(inplanes, planes)
-        self.bn2 = nn.BatchNorm2d(planes, eps=1e-05, )
+        self.bn2 = nn.BatchNorm2d(planes, eps=1e-05,)
         self.prelu = nn.PReLU(planes)
         self.conv2 = conv3x3(planes, planes, stride)
-        self.bn3 = nn.BatchNorm2d(planes, eps=1e-05, )
+        self.bn3 = nn.BatchNorm2d(planes, eps=1e-05,)
         self.downsample = downsample
         self.stride = stride
 
@@ -60,7 +59,6 @@ class IBasicBlock(nn.Module):
 
 class IResNet(nn.Module):
     fc_scale = 7 * 7
-
     def __init__(self,
                  block, layers, dropout=0, num_features=512, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None, fp16=False):
@@ -94,7 +92,7 @@ class IResNet(nn.Module):
                                        layers[3],
                                        stride=2,
                                        dilate=replace_stride_with_dilation[2])
-        self.bn2 = nn.BatchNorm2d(512 * block.expansion, eps=1e-05, )
+        self.bn2 = nn.BatchNorm2d(512 * block.expansion, eps=1e-05,)
         self.dropout = nn.Dropout(p=dropout, inplace=True)
         self.fc = nn.Linear(512 * block.expansion * self.fc_scale, num_features)
         self.features = nn.BatchNorm1d(num_features, eps=1e-05)
@@ -124,7 +122,10 @@ class IResNet(nn.Module):
                 conv1x1(self.inplanes, planes * block.expansion, stride),
                 nn.BatchNorm2d(planes * block.expansion, eps=1e-05, ),
             )
-        layers = [block(self.inplanes, planes, stride, downsample, self.groups,self.base_width, previous_dilation)]
+        layers = []
+        layers.append(
+            block(self.inplanes, planes, stride, downsample, self.groups,
+                  self.base_width, previous_dilation))
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(
@@ -160,6 +161,41 @@ def _iresnet(arch, block, layers, pretrained, progress, **kwargs):
     return model
 
 
+def iresnet18(pretrained=False, progress=True, **kwargs):
+    return _iresnet('iresnet18', IBasicBlock, [2, 2, 2, 2], pretrained,
+                    progress, **kwargs)
+
+
+def iresnet34(pretrained=False, progress=True, **kwargs):
+    return _iresnet('iresnet34', IBasicBlock, [3, 4, 6, 3], pretrained,
+                    progress, **kwargs)
+
+
 def iresnet50(pretrained=False, progress=True, **kwargs):
     return _iresnet('iresnet50', IBasicBlock, [3, 4, 14, 3], pretrained,
                     progress, **kwargs)
+
+
+def iresnet100(pretrained=False, progress=True, **kwargs):
+    return _iresnet('iresnet100', IBasicBlock, [3, 13, 30, 3], pretrained,
+                    progress, **kwargs)
+
+
+def iresnet200(pretrained=False, progress=True, **kwargs):
+    return _iresnet('iresnet200', IBasicBlock, [6, 26, 60, 6], pretrained,
+                    progress, **kwargs)
+
+
+def get_model(name, **kwargs):
+    if name == "r18":
+        return iresnet18(False, **kwargs)
+    elif name == "r34":
+        return iresnet34(False, **kwargs)
+    elif name == "r50":
+        return iresnet50(False, **kwargs)
+    elif name == "r100":
+        return iresnet100(False, **kwargs)
+    elif name == "r200":
+        return iresnet200(False, **kwargs)
+    else:
+        raise ValueError()
