@@ -32,7 +32,7 @@ def encode_image_fr_framework(path_to_sample, image_path, model='cnn'):
     return face_recognition.face_encodings(rgb, boxes)
 
 
-def encode_image_arc_face(path_to_sample, image_path, weights="models/backbone.pth"):
+def encode_image_arc_face(path_to_sample, image_path, weights="models/model.pth"):
     wht = torch.load(weights, map_location=torch.device('cpu'))
     return encode_sample(wht, os.path.abspath(f"{path_to_sample}/{image_path}"))
 
@@ -43,7 +43,7 @@ def process_sample(path_to_sample, model, image_encodings, image_names, method):
 
         sample_name = path_to_sample.split(os.path.sep)[-1]
         if method == 'arc':
-            encodings = encode_image_arc_face(path_to_sample, image_path, weights="models/backbone.pth")
+            encodings = encode_image_arc_face(path_to_sample, image_path, weights="models/model.pth")
         else:
             encodings = encode_image_fr_framework(path_to_sample, image_path, model)
         for encoding in encodings:
