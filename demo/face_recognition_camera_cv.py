@@ -5,6 +5,7 @@ import cv2
 import face_recognition
 import numpy as np
 from numpy.linalg import norm
+import argparse
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from models.predict_arcface import encode_sample
@@ -38,16 +39,15 @@ def get_boundaries(locations):
 
 def arcface_encode(image, known_face_locations=None):
     if known_face_locations is not None and len(known_face_locations) > 0:
-        print(known_face_locations[0])
         ll, rr, dd, uu = get_boundaries(known_face_locations[0])
         image = image[max(0, dd):uu, max(0, ll):rr]
     return encode_sample(wht="../models/model.pth", img=image)
 
 
-def run_demo(tolerance=0.2,
-             encoding_method=arcface_encode,
-             distances_method=compare_arc,
-             method='arc'):
+def run_demo(tolerance=0.6,
+             encoding_method=softmax_encode,
+             distances_method=get_distances,
+             method='soft'):
     video_capture = cv2.VideoCapture(0)
 
     obama_image = face_recognition.load_image_file("images/obama.jpg")
@@ -80,7 +80,6 @@ def run_demo(tolerance=0.2,
             face_names = []
             for face_encoding in face_encodings:
                 face_distances = distances_method(known_face_encodings, face_encoding)
-                print(face_distances)
                 if method == 'arc':
                     best_match_index = np.argmax(face_distances)
                     name = known_face_names[best_match_index] if max(face_distances) > tolerance else "Unknown"
@@ -110,4 +109,14 @@ def run_demo(tolerance=0.2,
 
 
 if __name__ == '__main__':
-    run_demo()
+    desc = 'Basic script to demonstrate face recognition. Press `q` to quit. Add images to folder images and add them to code'
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('--method', type=str, default='softmax', help="arc or softmax")
+    parser.add_argument('--tolerance', type=float, default=0.2)
+
+    args = parser.parse_args()
+
+    if args.method == 'arc':
+        run_demo(method='arc', encoding_method=arcface_encode, distances_method=compare_arc)
+    else:
+        run_demo()
