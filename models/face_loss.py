@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on 18-6-7 上午10:11
-
-@author: ronghuaiyang
-"""
-
 import torch
 import torch.nn as nn
 
